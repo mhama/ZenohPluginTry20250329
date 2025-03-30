@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
+using AOT;
 using Unity.Collections;
 using UnityEngine;
 using Zenoh.Plugins;
@@ -91,6 +92,7 @@ public unsafe class ZenohCameraReceiverTest : MonoBehaviour
     //
 
     // 実際のメッセージを処理するコールバック
+    [MonoPInvokeCallback(typeof(ZenohNative.z_closure_sample_call_delegate))]
     private static void HandleSample(z_loaned_sample_t *sample, void *context)
     {
         // サンプルからキー式を取得
@@ -168,6 +170,7 @@ public unsafe class ZenohCameraReceiverTest : MonoBehaviour
         */
     }
 
+    [MonoPInvokeCallback(typeof(ZenohNative.z_closure_sample_drop_delegate))]
     private static void HandleDrop(void *context)
     {
         
