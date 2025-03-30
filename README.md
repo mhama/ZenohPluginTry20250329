@@ -1,9 +1,11 @@
 ## Zenoh Plugin Project for Unity
 
-This is experimental Unity Plugin for Unity.
+This is experimental Zenoh Plugin for Unity.
 This plugin utilizes zenoh-c with csbindgen generated binding code. So all features can be used (ideally).
 
 Currently, use of this plugin is not so easy because there's no wrapper classes. You need to fiddle with unsafe types and the ownership idea of Rust language...
+
+Zenoh version: 1.3.0
 
 ## Platforms
 
@@ -23,12 +25,12 @@ Because struct sizes can vary on platforms, ZenohNative.g.cs should be replaced 
 
 ## About samples
 
-### ZenohNativeTest
+### ZenohSimplePubSubSample scene / ZenohSimplePubSubTest script
 
 This sample will publish strings on "myhome/kitchen/temp" key and also subscribe the same key.
 You can subscribe the key or publish into the key using different zenoh implementations.
 
-### ZenohCameraReceiverTest
+### ZenohCameraReceiverSample scene / ZenohCameraReceiverTest script
 
 This sample will subscribe jpeg sequence on "rpi/camera/image_jpeg" key and reflect the images on the specified renderer.
 
@@ -41,7 +43,10 @@ binding code can be generated with zenoh-c-cs project. This project is a fork of
 
 ### clone repo
 
+```sh
 git clone https://github.com/mhama/zenoh-c-cs
+git checkout 20250325-csbindgen-1.3.0
+```
 
 ### For MacOS (Apple Silicon) (non-cross-compiling)
 
