@@ -10,13 +10,13 @@ using Zenoh.Plugins;
 
 public unsafe class ZenohCameraReceiverTest : MonoBehaviour
 {
-    z_owned_session_t *ownedSessionPtr;// = new z_owned_session_t();
-    z_owned_subscriber_t *ownedSubscriberPtr;
-    z_owned_publisher_t *ownedPublisherPtr;// = new z_owned_publisher_t();
+    private z_owned_session_t* ownedSessionPtr;
+    private z_owned_subscriber_t* ownedSubscriberPtr;
+    private z_owned_publisher_t* ownedPublisherPtr;
     bool initialized = false;
     
     static byte[] managedBuffer;
-    private static object obj = new object(); // objの初期化を忘れずに
+    private static object obj = new object();
     static Texture2D texture;
     static SynchronizationContext syncContext;
     
@@ -51,11 +51,7 @@ public unsafe class ZenohCameraReceiverTest : MonoBehaviour
         // テクスチャが更新された場合にのみマテリアルを更新
         if (textureUpdated && texture != null && targetRenderer != null)
         {
-            // メイン（共有）マテリアルを更新する場合
             targetRenderer.material.mainTexture = texture;
-            
-            // または特定のプロパティに設定する場合
-            // targetRenderer.material.SetTexture("_MainTex", texture);
             
             textureUpdated = false;
             Debug.Log("Material texture updated");
@@ -95,9 +91,12 @@ public unsafe class ZenohCameraReceiverTest : MonoBehaviour
     [MonoPInvokeCallback(typeof(ZenohNative.z_closure_sample_call_delegate))]
     private static void HandleSample(z_loaned_sample_t *sample, void *context)
     {
+        // サンプルの種類を取得 (PUT/DELETE)
+        z_sample_kind_t kind = ZenohNative.z_sample_kind(sample);
+        
         // サンプルからキー式を取得
         z_loaned_keyexpr_t *keyexprTmp = ZenohNative.z_sample_keyexpr(sample);
-        Debug.Log($"received: keyexpr: {ZenohUtils.keyexprToStr(keyexprTmp)}");            
+        Debug.Log($"received: keyexpr: {ZenohUtils.keyexprToStr(keyexprTmp)} kind: {kind}");
         
         // サンプルからデータを取得
         z_loaned_bytes_t *payload = ZenohNative.z_sample_payload(sample);
@@ -163,11 +162,6 @@ public unsafe class ZenohCameraReceiverTest : MonoBehaviour
                 textureUpdated = true;
             }
         }
-
-        /*
-        // サンプルの種類を取得 (PUT/DELETE)
-        ZSampleKindT kind = ZenohNative.z_sample_kind(sample);
-        */
     }
 
     [MonoPInvokeCallback(typeof(ZenohNative.z_closure_sample_drop_delegate))]
@@ -184,22 +178,19 @@ public unsafe class ZenohCameraReceiverTest : MonoBehaviour
     }
     
     // サブスクライバーを作成する例
-    private unsafe void CreateSubscriber(string keyExprStr)
+    private void CreateSubscriber(string keyExprStr)
     {
         z_loaned_session_t *loanedSession = ZenohNative.z_session_loan(ownedSessionPtr);
-        // キー式を作成
         z_owned_keyexpr_t ownedKeyExpr = new z_owned_keyexpr_t();
         z_result_t result = ZenohNative.z_keyexpr_from_str(&ownedKeyExpr, keyExprStr);
         if (result != z_result_t.Z_OK)
         {
             throw new Exception("Failed to create key expression");
         }
-
-        // キー式を借用
         z_loaned_keyexpr_t *loanedKeyExpr = ZenohNative.z_keyexpr_loan(&ownedKeyExpr);
         Debug.Log($"loanedKeyExpr: {ZenohUtils.keyexprToStr(loanedKeyExpr)}");
 
-        // コールバックのクロージャを作成
+        // callback closure
         z_owned_closure_sample_t ownedClosure = new z_owned_closure_sample_t();
         ZenohNative.z_closure_sample(
             &ownedClosure,
@@ -208,12 +199,10 @@ public unsafe class ZenohCameraReceiverTest : MonoBehaviour
             null);
 
         Debug.Log("created callback closure");
-        
-        // サブスクライバーオプションを設定
+
+        // declare subscriber
         z_subscriber_options_t options = new z_subscriber_options_t();
         ZenohNative.z_subscriber_options_default(&options);
-        
-        // サブスクライバーを作成
         z_owned_subscriber_t ownedSubscriber = new z_owned_subscriber_t();
         result = ZenohNative.z_declare_subscriber(
             loanedSession,

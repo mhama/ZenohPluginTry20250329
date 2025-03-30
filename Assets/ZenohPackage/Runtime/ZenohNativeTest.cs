@@ -2,33 +2,15 @@ using System;
 using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using AOT;
 using UnityEngine;
-
 using Zenoh.Plugins;
-
-namespace Zenoh.Plugins
-{
-    internal static unsafe partial class ZenohNative
-    {
-        // custom string marshalling
-        
-        [DllImport(__DllName, CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern z_result_t z_string_copy_from_str(z_owned_string_t* this_,  [MarshalAs(UnmanagedType.LPStr)] string str);
-        
-        [DllImport(__DllName, EntryPoint = "z_keyexpr_from_str", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern z_result_t z_keyexpr_from_str(z_owned_keyexpr_t* @this, [MarshalAs(UnmanagedType.LPStr)] string expr);
-
-        [DllImport(__DllName, EntryPoint = "z_bytes_copy_from_str", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
-        internal static extern z_result_t z_bytes_copy_from_str(z_owned_bytes_t* @this, [MarshalAs(UnmanagedType.LPStr)] string str);
-
-    }
-}
 
 public unsafe class ZenohNativeTest : MonoBehaviour
 {
-    z_owned_session_t *ownedSessionPtr;// = new z_owned_session_t();
+    z_owned_session_t *ownedSessionPtr;
     z_owned_subscriber_t *ownedSubscriberPtr;
-    z_owned_publisher_t *ownedPublisherPtr;// = new z_owned_publisher_t();
+    z_owned_publisher_t *ownedPublisherPtr;
     bool initialized = false;
     
     void Start()
@@ -112,10 +94,7 @@ public unsafe class ZenohNativeTest : MonoBehaviour
 
         try
         {
-            // 1. セッションの借用
             z_loaned_session_t *loanedSession = ZenohNative.z_session_loan(ownedSessionPtr);
-
-            // 2. KeyExprを宣言
             z_result_t result = ZenohNative.z_keyexpr_from_str(&ownedKeyExpr, keyExpr);
             if (result != z_result_t.Z_OK)
             {
@@ -123,14 +102,10 @@ public unsafe class ZenohNativeTest : MonoBehaviour
                 return false;
             }
 
-            // 3. KeyExprを借用
+            // declare publisher
             z_loaned_keyexpr_t *loanedKeyExprPtr = ZenohNative.z_keyexpr_loan(&ownedKeyExpr);
-
-            // 4. Publisherのオプションを設定
             z_publisher_options_t pubOptions = new z_publisher_options_t();
             ZenohNative.z_publisher_options_default(&pubOptions);
-
-            // 5. Publisherを宣言
             result = ZenohNative.z_declare_publisher(loanedSession,
                 ownedPublisherPtr,
                 loanedKeyExprPtr,
@@ -175,7 +150,6 @@ public unsafe class ZenohNativeTest : MonoBehaviour
             z_loaned_encoding_t *textPlainEncodingPtr = ZenohNative.z_encoding_text_plain();
             ZenohNative.z_encoding_clone(&encoding, textPlainEncodingPtr);
             putOptions.encoding = (z_moved_encoding_t *)&encoding;
-            //putOptions.SetMovedEncoding(&encoding);
 
             // データ送信
             z_result_t putResult = ZenohNative.z_publisher_put(loanedPublisher, (z_moved_bytes_t *)&payload, &putOptions);
@@ -185,17 +159,11 @@ public unsafe class ZenohNativeTest : MonoBehaviour
             Debug.LogError($"Exception in Publisher test: {ex.Message}\n{ex.StackTrace}");
         }
     }
-
-    // 1秒待機
-     //       yield return new WaitForSeconds(1.0f);
-     //   }
         
      void ReleasePublisher()
      {
-        // 8. リソース解放
         ZenohNative.z_publisher_drop((z_moved_publisher_t *)ownedPublisherPtr);
-        
-        Debug.Log("Publisher test completed");
+        Debug.Log("Publisher released.");
     }
     
     //
@@ -203,6 +171,7 @@ public unsafe class ZenohNativeTest : MonoBehaviour
     //
     
     // 実際のメッセージを処理するコールバック
+    [MonoPInvokeCallback(typeof(ZenohNative.z_closure_sample_call_delegate))]
     private static void HandleSample(z_loaned_sample_t *sample, void *context)
     {
         // サンプルからキー式を取得
@@ -217,6 +186,7 @@ public unsafe class ZenohNativeTest : MonoBehaviour
         Debug.Log($"payload:: {ZenohUtils.stringToStr(str)}"); 
     }
 
+    [MonoPInvokeCallback(typeof(ZenohNative.z_closure_sample_drop_delegate))]
     private static void HandleDrop(void *context)
     {
         
@@ -226,21 +196,6 @@ public unsafe class ZenohNativeTest : MonoBehaviour
     {
         CreateSubscriber("myhome/kitchen/temp");
         yield return new WaitForSeconds(5.0f);
-    }
-    
-    //[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-    private static void CallFunction(z_loaned_sample_t* sample, void* context)
-    {
-        // sample, context を用いた処理を記述
-        Console.WriteLine("CallFunction invoked.");
-    }
-
-    // drop に対応するコールバック
-    //[UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvCdecl) })]
-    private static void DropFunction(void* context)
-    {
-        // context を解放するなどの後処理を行う
-        Console.WriteLine("DropFunction invoked.");
     }
     
     // サブスクライバーを作成する例
