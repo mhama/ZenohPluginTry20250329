@@ -6,7 +6,7 @@ using AOT;
 using UnityEngine;
 using Zenoh.Plugins;
 
-public unsafe class ZenohNativeTest : MonoBehaviour
+public unsafe class ZenohSimplePubSubTest : MonoBehaviour
 {
     z_owned_session_t *ownedSessionPtr;
     z_owned_subscriber_t *ownedSubscriberPtr;
@@ -57,15 +57,11 @@ public unsafe class ZenohNativeTest : MonoBehaviour
             // 基本的なテスト
             z_owned_string_t ownedStr = new z_owned_string_t();
             z_owned_string_t* ownedStrPtr = &ownedStr;
-            //var ary = "hello unity".ToCharArray();            
-            //fixed (char* pArray = &ary[0])
-            {
-                var result = ZenohNative.z_string_copy_from_str(ownedStrPtr, "hello unity");
-                var loanedStringPtr = ZenohNative.z_string_loan(ownedStrPtr);
-                var outStr = ZenohNative.z_string_data(loanedStringPtr);
-                Debug.Log($"outStr: {Marshal.PtrToStringAnsi((IntPtr)outStr)}");
-                ZenohNative.z_string_drop(ZenohUtils.z_move(ownedStrPtr));
-            }
+            var result = ZenohNative.z_string_copy_from_str(ownedStrPtr, "hello unity");
+            var loanedStringPtr = ZenohNative.z_string_loan(ownedStrPtr);
+            var outStr = ZenohNative.z_string_data(loanedStringPtr);
+            Debug.Log($"outStr: {Marshal.PtrToStringAnsi((IntPtr)outStr)}");
+            ZenohNative.z_string_drop(ZenohUtils.z_move(ownedStrPtr));
         }
     }
     
