@@ -41,7 +41,7 @@ public unsafe class ZenohCameraReceiverTest : MonoBehaviour
         if (targetRenderer == null)
             targetRenderer = GetComponent<Renderer>();
             
-        ZenohUtils.OpenSession(ownedSessionPtr);
+        //ZenohUtils.OpenSession(ownedSessionPtr);
         StartCoroutine(TestSubscriber());
         texture = new Texture2D(1, 1);
     }
@@ -63,7 +63,7 @@ public unsafe class ZenohCameraReceiverTest : MonoBehaviour
         if (initialized)
         {
             // 初期化していないものを終了するとクラッシュするので注意
-            ZenohUtils.CloseSession(ownedSessionPtr);
+            //ZenohUtils.CloseSession(ownedSessionPtr);
             initialized = false;
         }
         

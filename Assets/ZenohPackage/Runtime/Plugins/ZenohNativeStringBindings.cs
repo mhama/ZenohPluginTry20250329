@@ -14,5 +14,8 @@ namespace Zenoh.Plugins
 
         [DllImport(__DllName, EntryPoint = "z_bytes_copy_from_str", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
         internal static extern z_result_t z_bytes_copy_from_str(z_owned_bytes_t* @this, [MarshalAs(UnmanagedType.LPStr)] string str);
+        
+        [DllImport(__DllName, EntryPoint = "zc_config_from_str", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+        internal static extern z_result_t zc_config_from_str(z_owned_config_t* @this, [MarshalAs(UnmanagedType.LPStr)] string s);
     }
 }

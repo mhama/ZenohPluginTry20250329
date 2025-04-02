@@ -19,7 +19,7 @@ public unsafe class ZenohSimplePubSubTest : MonoBehaviour
         ownedSubscriberPtr = (z_owned_subscriber_t *)Marshal.AllocHGlobal(sizeof(z_owned_subscriber_t));
         ownedPublisherPtr = (z_owned_publisher_t *)Marshal.AllocHGlobal(sizeof(z_owned_publisher_t));
         TestString();
-        ZenohUtils.OpenSession(ownedSessionPtr);
+        //ZenohUtils.OpenSession(ownedSessionPtr);
         initialized = true;
         string keyExpr = "myhome/kitchen/temp";
         StartCoroutine(TestPublisher(keyExpr));
@@ -31,7 +31,7 @@ public unsafe class ZenohSimplePubSubTest : MonoBehaviour
         if (initialized)
         {
             // 初期化していないものを終了するとクラッシュするので注意
-            ZenohUtils.CloseSession(ownedSessionPtr);
+            //ZenohUtils.CloseSession(ownedSessionPtr);
         }
         
         if (ownedSessionPtr != null)

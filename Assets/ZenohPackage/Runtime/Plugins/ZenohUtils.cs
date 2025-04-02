@@ -4,85 +4,52 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using UnityEngine;
 using Zenoh.Plugins;
+using ZenohPackage.Plugins;
 
 public static class ZenohUtils
 {
-    internal static unsafe void OpenSession(z_owned_session_t* ownedSession)
-    {
-        Debug.Log("Starting Zenoh open session test...");
-        
-        try
-        {
-            // 1. まずConfigurationを作成（所有権を持つ）
-            z_owned_config_t ownedConfig = new z_owned_config_t();
-            z_result_t configResult = ZenohNative.z_config_default(&ownedConfig);
-            if (configResult != z_result_t.Z_OK)
-            {
-                Debug.LogError("Failed to create Zenoh config");
-                return;
-            }
-            
-            // 3. OpenOptionsを準備
-            z_open_options_t openOptions = new z_open_options_t();
-            ZenohNative.z_open_options_default(&openOptions);
-            
-            // 4. 設定を使用してセッションを開く
-            // Rustと同様に、z_openはownedConfigの所有権を消費(move)する
-            ZenohNative.z_config_default(&ownedConfig);
-            
-            configResult = ZenohNative.z_open(ownedSession, (z_moved_config_t *)&ownedConfig, &openOptions);
-
-
-            if (configResult != z_result_t.Z_OK)
-            {
-                Debug.LogError("Failed to open Zenoh session");
-                return;
-            }
-            
-            Debug.Log("Zenoh session opened successfully");
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"Exception in Zenoh open test: {ex.Message}\n{ex.StackTrace}");
-        }
-    }
-    
-    internal static unsafe void CloseSession(z_owned_session_t* ownedSession)
-    {
-        Debug.Log("Closing Zenoh session ...");
-        try
-        {
-            // 5. セッションの借用（Rustのborrow概念）- 所有権なしで一時的に使用
-            z_loaned_session_t* loanedSession = ZenohNative.z_session_loan(ownedSession);
-            
-            // 6. セッションを閉じる準備
-            z_close_options_t closeOptions = new z_close_options_t();
-            ZenohNative.z_close_options_default(&closeOptions);
-            
-            // 7. セッションを閉じる - 借用したポインタを使用
-            z_result_t closeResult = ZenohNative.z_close(loanedSession, &closeOptions);
-            if (closeResult != z_result_t.Z_OK)
-            {
-                Debug.LogError("Error closing Zenoh session");
-            }
-            
-            // 8. リソースを解放 - 所有権を持つオブジェクトを明示的に解放
-            ZenohNative.z_session_drop((z_moved_session_t*)ownedSession);
-            
-            Debug.Log("Zenoh session closed.");
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError($"Exception in Zenoh close test: {ex.Message}\n{ex.StackTrace}");
-        }
-    }
-    
     internal static unsafe string keyexprToStr(z_loaned_keyexpr_t *loanedKeyExpr)
     {
         z_view_string_t viewString = new z_view_string_t();
         ZenohNative.z_keyexpr_as_view_string(loanedKeyExpr, &viewString);
         z_loaned_string_t *loanedString = ZenohNative.z_view_string_loan(&viewString);
         return Marshal.PtrToStringAnsi((IntPtr)ZenohNative.z_string_data(loanedString));
+    }
+    
+    // Wrapper method with the name used in ZenohSampleRef
+    internal static unsafe string GetKeyExprAsString(z_loaned_keyexpr_t *loanedKeyExpr)
+    {
+        return keyexprToStr(loanedKeyExpr);
+    }
+    
+    // Convert z_loaned_bytes_t to byte array
+    internal static unsafe byte[] ConvertToByteArray(z_loaned_bytes_t* bytes)
+    {
+        if (bytes == null)
+            return new byte[0];
+            
+        // Convert bytes to slice
+        z_owned_slice_t slice = new z_owned_slice_t();
+        ZenohNative.z_bytes_to_slice(bytes, &slice);
+        
+        // Loan the slice to access its data
+        var loanedSlice = ZenohNative.z_slice_loan(&slice);
+        
+        // Get the data pointer and length
+        byte* buf = ZenohNative.z_slice_data(loanedSlice);
+        long len = (long)ZenohNative.z_slice_len(loanedSlice);
+        
+        // Create a new byte array and copy the data
+        byte[] result = new byte[len];
+        if (len > 0)
+        {
+            Marshal.Copy((IntPtr)buf, result, 0, (int)len);
+        }
+        
+        // Clean up the slice
+        ZenohNative.z_slice_drop((z_moved_slice_t*)&slice);
+        
+        return result;
     }
 
     internal static unsafe string stringToStr(z_loaned_string_t* loanedString)
