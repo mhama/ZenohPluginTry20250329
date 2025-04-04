@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
-using ZenohPackage.Plugins;
+using Zenoh;
 
 public class ZenohSimplePubSubTest2 : MonoBehaviour
 {

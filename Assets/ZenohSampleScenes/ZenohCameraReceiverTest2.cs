@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Unity.Collections;
 using UnityEngine;
-using ZenohPackage.Plugins;
+using Zenoh;
 
 public class ZenohCameraReceiverTest2 : MonoBehaviour
 {

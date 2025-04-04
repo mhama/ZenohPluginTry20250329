@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using Zenoh.Plugins;
 
-namespace ZenohPackage.Plugins
+namespace Zenoh
 {
     // Options class for publisher declaration
     public class ZenohPublisherOptions

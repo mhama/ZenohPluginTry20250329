@@ -5,7 +5,7 @@ using Zenoh.Plugins;
 using AOT;
 using UnityEngine; // For MonoPInvokeCallback attribute
 
-namespace ZenohPackage.Plugins
+namespace Zenoh
 {
     public struct ZResult
     {

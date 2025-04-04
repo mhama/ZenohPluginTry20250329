@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using Zenoh.Plugins;
 
-namespace ZenohPackage.Plugins
+namespace Zenoh
 {
     // Wrapper for z_owned_session_t* native type
     public unsafe class ZenohSession : IDisposable
