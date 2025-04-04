@@ -6,12 +6,12 @@ using Zenoh.Plugins;
 namespace Zenoh
 {
     // Wrapper for z_owned_session_t* native type
-    public unsafe class ZenohSession : IDisposable
+    public unsafe class Session : IDisposable
     {
         private z_owned_session_t* nativePtr;
         private bool disposed = false;
 
-        public ZenohSession()
+        public Session()
         {
             // Allocate memory for the native session
             nativePtr = (z_owned_session_t*)Marshal.AllocHGlobal(sizeof(z_owned_session_t));
@@ -100,7 +100,7 @@ namespace Zenoh
             return ZenohNative.z_session_loan(nativePtr);
         }
 
-        ~ZenohSession()
+        ~Session()
         {
             Dispose(false);
         }

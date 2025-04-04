@@ -7,26 +7,26 @@ using Zenoh.Plugins;
 namespace Zenoh
 {
     // Delegate for C# callback
-    public delegate void SampleReceivedCallback(ZenohSampleRef sample);
+    public delegate void SampleReceivedCallback(SampleRef sample);
 
     // Wrapper for z_owned_subscriber_t native type
-    public unsafe class ZenohSubscriber : IDisposable
+    public unsafe class Subscriber : IDisposable
     {
         private z_owned_subscriber_t* nativePtr;
         private SampleReceivedCallback callback;
         private GCHandle callbackHandle; // To prevent garbage collection
-        private ZenohClosureSample closure; // Keep a reference to prevent garbage collection
+        private ClosureSample closure; // Keep a reference to prevent garbage collection
         private static readonly ZenohNative.z_closure_sample_call_delegate StaticCallbackHandler = HandleSampleCallback;
 
-        public ZenohSubscriber()
+        public Subscriber()
         {
             // Allocate memory for the native subscriber
             nativePtr = (z_owned_subscriber_t*)Marshal.AllocHGlobal(sizeof(z_owned_subscriber_t));
         }
 
-        // Creates a subscriber using the provided ZenohSession and ZenohKeyExpr.
+        // Creates a subscriber using the provided Session and KeyExpr.
         // Loans of objects are handled transparently.
-        public void CreateSubscriber(ZenohSession session, ZenohKeyExpr keyExpr, SampleReceivedCallback callback = null)
+        public void CreateSubscriber(Session session, KeyExpr keyExpr, SampleReceivedCallback callback = null)
         {
             this.callback = callback;
             
@@ -41,8 +41,8 @@ namespace Zenoh
             
             // Create a closure with our static callback handler if a callback was provided
             this.closure = callback != null 
-                ? ZenohClosureSample.Create(StaticCallbackHandler, null, GCHandle.ToIntPtr(callbackHandle).ToPointer())
-                : ZenohClosureSample.CreateDefault();
+                ? ClosureSample.Create(StaticCallbackHandler, null, GCHandle.ToIntPtr(callbackHandle).ToPointer())
+                : ClosureSample.CreateDefault();
             
             z_subscriber_options_t options = new z_subscriber_options_t();
             ZenohNative.z_subscriber_options_default(&options);
@@ -67,13 +67,13 @@ namespace Zenoh
             
             // Convert context pointer back to GCHandle and get the subscriber instance
             GCHandle handle = GCHandle.FromIntPtr((IntPtr)context);
-            ZenohSubscriber subscriber = (ZenohSubscriber)handle.Target;
+            Subscriber subscriber = (Subscriber)handle.Target;
             
             // Call the C# callback if it exists
             if (subscriber != null && subscriber.callback != null)
             {
-                ZenohSampleRef zenohSample = new ZenohSampleRef(sample);
-                subscriber.callback(zenohSample);
+                SampleRef sampleRef = new SampleRef(sample);
+                subscriber.callback(sampleRef);
             }
         }
 
@@ -103,27 +103,27 @@ namespace Zenoh
     }
 
     // Wrapper for z_owned_closure_sample_t native type
-    public unsafe class ZenohClosureSample : IDisposable
+    public unsafe class ClosureSample : IDisposable
     {
         private z_owned_closure_sample_t* nativePtr;
         private bool disposed = false;
 
-        private ZenohClosureSample()
+        private ClosureSample()
         {
             // Allocate memory for the native closure sample
             nativePtr = (z_owned_closure_sample_t*)Marshal.AllocHGlobal(sizeof(z_owned_closure_sample_t));
         }
 
         // Create a closure sample with explicit callbacks and context.
-        internal static ZenohClosureSample Create(ZenohNative.z_closure_sample_call_delegate sampleCall, ZenohNative.z_closure_sample_drop_delegate dropCall, void* context)
+        internal static ClosureSample Create(ZenohNative.z_closure_sample_call_delegate sampleCall, ZenohNative.z_closure_sample_drop_delegate dropCall, void* context)
         {
-            ZenohClosureSample instance = new ZenohClosureSample();
+            ClosureSample instance = new ClosureSample();
             ZenohNative.z_closure_sample(instance.nativePtr, sampleCall, dropCall, context);
             return instance;
         }
         
         // Create a default closure sample with null callbacks.
-        public static ZenohClosureSample CreateDefault()
+        public static ClosureSample CreateDefault()
         {
             return Create(null, null, null);
         }
@@ -131,7 +131,7 @@ namespace Zenoh
         // Expose the native closure for use in native calls.
         internal z_owned_closure_sample_t* NativePointer => nativePtr;
 
-        ~ZenohClosureSample()
+        ~ClosureSample()
         {
             Dispose(false);
         }

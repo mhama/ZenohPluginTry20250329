@@ -5,9 +5,9 @@ using Zenoh.Plugins;
 namespace Zenoh
 {
     // Options class for publisher declaration
-    public class ZenohPublisherOptions
+    public class PublisherOptions
     {
-        public ZenohPublisherOptions()
+        public PublisherOptions()
         {
             // Default constructor
         }
@@ -21,18 +21,18 @@ namespace Zenoh
     }
 
     // Options class for publisher put operation
-    public class ZenohPublisherPutOptions : IDisposable
+    public class PublisherPutOptions : IDisposable
     {
-        private ZenohEncoding encoding;
+        private Encoding encoding;
         private bool disposed = false;
 
-        public ZenohPublisherPutOptions()
+        public PublisherPutOptions()
         {
             // Default constructor
         }
 
         // Set encoding by moving ownership from the provided encoding
-        public unsafe void SetMovedEncoding(ZenohEncoding sourceEncoding)
+        public unsafe void SetMovedEncoding(Encoding sourceEncoding)
         {
             // Dispose existing encoding if any
             encoding?.Dispose();
@@ -40,7 +40,7 @@ namespace Zenoh
             // Transfer ownership by moving the pointer
             if (sourceEncoding != null)
             {
-                encoding = new ZenohEncoding(sourceEncoding.Move());
+                encoding = new Encoding(sourceEncoding.Move());
             }
             else
             {
@@ -81,26 +81,26 @@ namespace Zenoh
             }
         }
 
-        ~ZenohPublisherPutOptions()
+        ~PublisherPutOptions()
         {
             Dispose(false);
         }
     }
 
     // Wrapper for z_owned_publisher_t native type
-    public unsafe class ZenohPublisher : IDisposable
+    public unsafe class Publisher : IDisposable
     {
         private z_owned_publisher_t* nativePtr;
         private bool disposed = false;
 
-        public ZenohPublisher()
+        public Publisher()
         {
             // Allocate memory for the native publisher
             nativePtr = (z_owned_publisher_t*)Marshal.AllocHGlobal(sizeof(z_owned_publisher_t));
         }
 
         // Declare a publisher
-        public void Declare(ZenohSession session, ZenohKeyExpr keyExpr, ZenohPublisherOptions options = null)
+        public void Declare(Session session, KeyExpr keyExpr, PublisherOptions options = null)
         {
             if (session == null)
                 throw new ArgumentNullException(nameof(session));
@@ -133,19 +133,19 @@ namespace Zenoh
         }
 
         // Put string data
-        public void Put(string data, ZenohPublisherPutOptions options = null)
+        public void Put(string data, PublisherPutOptions options = null)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
-            using (ZenohBytes bytes = new ZenohBytes(data))
+            using (Bytes bytes = new Bytes(data))
             {
                 PutBytes(bytes, options);
             }
         }
 
         // Put ZenohBytes data
-        private void PutBytes(ZenohBytes bytes, ZenohPublisherPutOptions options = null)
+        private void PutBytes(Bytes bytes, PublisherPutOptions options = null)
         {
             if (bytes == null)
                 throw new ArgumentNullException(nameof(bytes));
@@ -173,7 +173,7 @@ namespace Zenoh
             }
         }
 
-        ~ZenohPublisher()
+        ~Publisher()
         {
             Dispose(false);
         }
