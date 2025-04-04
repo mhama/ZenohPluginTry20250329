@@ -6,11 +6,11 @@ using Unity.Collections;
 using UnityEngine;
 using Zenoh;
 
-public class ZenohCameraReceiverTest2 : MonoBehaviour
+public class ZenohCameraReceiverTest : MonoBehaviour
 {
-    private ZenohSession session;
-    private ZenohSubscriber subscriber;
-    private ZenohKeyExpr keyExpr;
+    private Session session;
+    private Subscriber subscriber;
+    private KeyExpr keyExpr;
     private bool initialized = false;
     
     private static byte[] managedBuffer;
@@ -39,7 +39,7 @@ public class ZenohCameraReceiverTest2 : MonoBehaviour
             targetRenderer = GetComponent<Renderer>();
             
         // Create and open Zenoh session
-        session = new ZenohSession();
+        session = new Session();
         string conf = zenohConfigText == null ? null : zenohConfigText?.text;
         var result = session.Open(conf);
 
@@ -96,7 +96,7 @@ public class ZenohCameraReceiverTest2 : MonoBehaviour
     }
      
     // Callback for when a sample is received
-    private void OnSampleReceived(ZenohSampleRef sample)
+    private void OnSampleReceived(SampleRef sample)
     {
         // Get data from the sample
         byte[] data = sample.GetPayload();
@@ -170,11 +170,8 @@ public class ZenohCameraReceiverTest2 : MonoBehaviour
     // Example of creating a subscriber
     private void CreateSubscriber(string keyExprStr)
     {
-        // Create key expression
-        keyExpr = new ZenohKeyExpr(keyExprStr);
-        
-        // Create subscriber
-        subscriber = new ZenohSubscriber();
+        keyExpr = new KeyExpr(keyExprStr);
+        subscriber = new Subscriber();
         
         // Register subscriber with callback
         subscriber.CreateSubscriber(session, keyExpr, OnSampleReceived);

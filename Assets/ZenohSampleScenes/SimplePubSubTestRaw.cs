@@ -6,7 +6,7 @@ using AOT;
 using UnityEngine;
 using Zenoh.Plugins;
 
-public unsafe class ZenohSimplePubSubTest : MonoBehaviour
+public unsafe class ZenohSimplePubSubTestRaw : MonoBehaviour
 {
     z_owned_session_t *ownedSessionPtr;
     z_owned_subscriber_t *ownedSubscriberPtr;

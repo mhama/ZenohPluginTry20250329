@@ -8,7 +8,7 @@ using Unity.Collections;
 using UnityEngine;
 using Zenoh.Plugins;
 
-public unsafe class ZenohCameraReceiverTest : MonoBehaviour
+public unsafe class CameraReceiverTestRaw : MonoBehaviour
 {
     private z_owned_session_t* ownedSessionPtr;
     private z_owned_subscriber_t* ownedSubscriberPtr;

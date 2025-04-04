@@ -3,11 +3,11 @@ using System.Collections;
 using UnityEngine;
 using Zenoh;
 
-public class ZenohSimplePubSubTest2 : MonoBehaviour
+public class ZenohSimplePubSubTest : MonoBehaviour
 {
-    private ZenohSession session;
-    private ZenohSubscriber subscriber;
-    private ZenohPublisher publisher;
+    private Session session;
+    private Subscriber subscriber;
+    private Publisher publisher;
     private bool initialized = false;
     
     [SerializeField]
@@ -16,8 +16,8 @@ public class ZenohSimplePubSubTest2 : MonoBehaviour
     void Start()
     {
         // Initialize Zenoh session
-        session = new ZenohSession();
-        var conf = zenohConfigText?.text;
+        session = new Session();
+        string conf = zenohConfigText == null ? null : zenohConfigText.text;
         session.Open(conf);
         initialized = true;
         
@@ -77,10 +77,10 @@ public class ZenohSimplePubSubTest2 : MonoBehaviour
         try
         {
             // Create key expression using the wrapper
-            using (ZenohKeyExpr keyExpression = new ZenohKeyExpr(keyExpr))
+            using (KeyExpr keyExpression = new KeyExpr(keyExpr))
             {
                 // Create publisher
-                publisher = new ZenohPublisher();
+                publisher = new Publisher();
                 publisher.Declare(session, keyExpression);
             }
         }
@@ -102,8 +102,8 @@ public class ZenohSimplePubSubTest2 : MonoBehaviour
             Debug.Log($"Putting Data ('{keyExpr}': '{message}')...");
             
             // Create put options with text/plain encoding
-            using (ZenohEncoding textPlainEncoding = ZenohEncoding.TextPlain())
-            using (ZenohPublisherPutOptions options = new ZenohPublisherPutOptions())
+            using (Encoding textPlainEncoding = Encoding.TextPlain())
+            using (PublisherPutOptions options = new PublisherPutOptions())
             {
                 options.SetMovedEncoding(textPlainEncoding);
                 
@@ -123,7 +123,7 @@ public class ZenohSimplePubSubTest2 : MonoBehaviour
     //
     
     // Callback for handling received samples
-    private void HandleSample(ZenohSampleRef sample)
+    private void HandleSample(SampleRef sample)
     {
         string keyExpr = sample.GetKeyExpr();
         byte[] payload = sample.GetPayload();
@@ -144,10 +144,10 @@ public class ZenohSimplePubSubTest2 : MonoBehaviour
         try
         {
             // Create key expression using the wrapper
-            using (ZenohKeyExpr keyExpression = new ZenohKeyExpr(keyExprStr))
+            using (KeyExpr keyExpression = new KeyExpr(keyExprStr))
             {
                 // Create subscriber with callback
-                subscriber = new ZenohSubscriber();
+                subscriber = new Subscriber();
                 subscriber.CreateSubscriber(session, keyExpression, HandleSample);
                 
                 Debug.Log($"Subscriber created for '{keyExprStr}'");

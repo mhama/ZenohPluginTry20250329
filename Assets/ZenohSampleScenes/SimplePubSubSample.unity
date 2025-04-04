@@ -227,7 +227,7 @@ GameObject:
   - component: {fileID: 175582340}
   - component: {fileID: 175582339}
   m_Layer: 0
-  m_Name: ZenohSimplePubSub
+  m_Name: ZenohSimplePubSubRaw
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -381,6 +381,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 340720a7295e644e9856764198fc7124, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  zenohConfigText: {fileID: 0}
 --- !u!4 &1500148746
 Transform:
   m_ObjectHideFlags: 0
