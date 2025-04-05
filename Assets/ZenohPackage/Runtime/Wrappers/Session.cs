@@ -64,40 +64,17 @@ namespace Zenoh
             return ZResult.Ok;
         }
 
-        public void Close()
+        public ZResult Close()
         {
-            Debug.Log("Closing Zenoh session ...");
-            try
-            {
-                // 5. セッションの借用（Rustのborrow概念）- 所有権なしで一時的に使用
-                z_loaned_session_t* loanedSession = ZenohNative.z_session_loan(nativePtr);
-                
-                // 6. セッションを閉じる準備
-                z_close_options_t closeOptions = new z_close_options_t();
-                ZenohNative.z_close_options_default(&closeOptions);
-                
-                // 7. セッションを閉じる - 借用したポインタを使用
-                z_result_t closeResult = ZenohNative.z_close(loanedSession, &closeOptions);
-                if (closeResult != z_result_t.Z_OK)
-                {
-                    Debug.LogError("Error closing Zenoh session");
-                }
-                
-                // 8. リソースを解放 - 所有権を持つオブジェクトを明示的に解放
-                ZenohNative.z_session_drop((z_moved_session_t*)nativePtr);
-                
-                Debug.Log("Zenoh session closed.");
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Exception in Zenoh close test: {ex.Message}\n{ex.StackTrace}");
-            }
+            var result = Loan().Close();
+            // drop
+            ZenohNative.z_session_drop((z_moved_session_t*)nativePtr);
+            return result;
         }
 
-        // Transparently loan the session to obtain a z_loaned_session_t*
-        internal z_loaned_session_t* LoanSession()
+        public SessionRef Loan()
         {
-            return ZenohNative.z_session_loan(nativePtr);
+            return new SessionRef(ZenohNative.z_session_loan(nativePtr));
         }
 
         ~Session()
@@ -124,5 +101,28 @@ namespace Zenoh
 
         // Expose native pointer if needed for advanced operations
         internal z_owned_session_t* NativePointer => nativePtr;
+    }
+
+
+    public unsafe class SessionRef
+    {
+        private readonly z_loaned_session_t* nativePtr;
+
+        internal SessionRef(z_loaned_session_t* keyExpr)
+        {
+            nativePtr = keyExpr;
+        }
+
+        internal z_loaned_session_t* NativePointer => nativePtr;
+
+        public ZResult Close()
+        {
+            z_close_options_t closeOptions = new z_close_options_t();
+            ZenohNative.z_close_options_default(&closeOptions);
+            
+            // close the session
+            z_result_t closeResult = ZenohNative.z_close(nativePtr, &closeOptions);
+            return new ZResult(closeResult);
+        }
     }
 }

@@ -29,17 +29,17 @@ namespace Zenoh
                 throw new Exception("Failed to create bytes from string");
             }
         }
-        
-        internal z_loaned_bytes_t* Loan()
+
+        public BytesRef Loan()
         {
-            return ZenohNative.z_bytes_loan(nativePtr);
+            return new BytesRef(ZenohNative.z_bytes_loan(nativePtr));
         }
 
         // Convert to byte array
         public byte[] ToByteArray()
         {
             z_owned_slice_t slice = new z_owned_slice_t();
-            ZenohNative.z_bytes_to_slice(Loan(), &slice);
+            ZenohNative.z_bytes_to_slice(Loan().NativePointer, &slice);
             
             z_loaned_slice_t* loanedSlice = ZenohNative.z_slice_loan(&slice);
             byte* buf = ZenohNative.z_slice_data(loanedSlice);
@@ -88,4 +88,43 @@ namespace Zenoh
         // Expose native pointer if needed for advanced operations
         internal z_owned_bytes_t* NativePointer => nativePtr;
     }
+
+    public unsafe class BytesRef
+    {
+        private readonly z_loaned_bytes_t* nativePtr;
+
+        internal BytesRef(z_loaned_bytes_t* keyExpr)
+        {
+            nativePtr = keyExpr;
+        }
+
+        internal z_loaned_bytes_t* NativePointer => nativePtr;
+
+        internal unsafe byte[] ToByteArray()
+        {
+            // Convert bytes to slice
+            z_owned_slice_t slice = new z_owned_slice_t();
+            ZenohNative.z_bytes_to_slice(nativePtr, &slice);
+            
+            // Loan the slice to access its data
+            var loanedSlice = ZenohNative.z_slice_loan(&slice);
+            
+            // Get the data pointer and length
+            byte* buf = ZenohNative.z_slice_data(loanedSlice);
+            long len = (long)ZenohNative.z_slice_len(loanedSlice);
+            
+            // Create a new byte array and copy the data
+            byte[] result = new byte[len];
+            if (len > 0)
+            {
+                Marshal.Copy((IntPtr)buf, result, 0, (int)len);
+            }
+            
+            // Clean up the slice
+            ZenohNative.z_slice_drop((z_moved_slice_t*)&slice);
+            
+            return result;
+        }
+    }
+
 }

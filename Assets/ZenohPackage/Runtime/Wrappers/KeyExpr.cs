@@ -23,10 +23,9 @@ namespace Zenoh
             }
         }
 
-        // Transparently loan the key expression to obtain a z_loaned_keyexpr_t*
-        internal z_loaned_keyexpr_t* Loan()
+        public KeyExprRef Loan()
         {
-            return ZenohNative.z_keyexpr_loan(nativePtr);
+            return new KeyExprRef(ZenohNative.z_keyexpr_loan(nativePtr));
         }
 
         ~KeyExpr()
@@ -50,7 +49,32 @@ namespace Zenoh
             }
         }
 
+        override public string ToString()
+        {
+            return Loan().ToString();
+        }
+
         // Expose native pointer if needed for advanced operations
         internal z_owned_keyexpr_t* NativePointer => nativePtr;
+    }
+
+    public unsafe class KeyExprRef
+    {
+        private readonly z_loaned_keyexpr_t* nativePtr;
+
+        internal KeyExprRef(z_loaned_keyexpr_t* keyExpr)
+        {
+            nativePtr = keyExpr;
+        }
+
+        override public string ToString()
+        {
+            z_view_string_t viewString = new z_view_string_t();
+            ZenohNative.z_keyexpr_as_view_string(nativePtr, &viewString);
+            z_loaned_string_t* loanedString = ZenohNative.z_view_string_loan(&viewString);
+            return Marshal.PtrToStringAnsi((IntPtr)ZenohNative.z_string_data(loanedString));
+        }
+
+        internal z_loaned_keyexpr_t* NativePointer => nativePtr;
     }
 }

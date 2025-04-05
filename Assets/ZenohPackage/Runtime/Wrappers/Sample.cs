@@ -12,18 +12,15 @@ namespace Zenoh
             nativeSample = sample;
         }
 
-        public byte[] GetPayload()
+        public BytesRef GetPayload()
         {
-            z_loaned_bytes_t* bytes = ZenohNative.z_sample_payload(nativeSample);
-            // Convert to byte array and return
-            return ZenohUtils.ConvertToByteArray(bytes);
+            return new BytesRef(ZenohNative.z_sample_payload(nativeSample));
         }
 
-        // Add other properties as needed
-        public string GetKeyExpr()
+        public KeyExprRef GetKeyExprRef()
         {
             z_loaned_keyexpr_t* keyExpr = ZenohNative.z_sample_keyexpr(nativeSample);
-            return ZenohUtils.GetKeyExprAsString(keyExpr);
+            return new KeyExprRef(keyExpr);
         }
     }
 }

@@ -106,9 +106,6 @@ namespace Zenoh
                 throw new ArgumentNullException(nameof(session));
             if (keyExpr == null)
                 throw new ArgumentNullException(nameof(keyExpr));
-
-            z_loaned_session_t* loanedSession = session.LoanSession();
-            z_loaned_keyexpr_t* loanedKeyExpr = keyExpr.Loan();
             
             z_publisher_options_t pubOptions = new z_publisher_options_t();
             if (options != null)
@@ -121,9 +118,9 @@ namespace Zenoh
             }
             
             z_result_t result = ZenohNative.z_declare_publisher(
-                loanedSession,
+                session.Loan().NativePointer,
                 nativePtr,
-                loanedKeyExpr,
+                keyExpr.Loan().NativePointer,
                 &pubOptions);
                 
             if (result != z_result_t.Z_OK)

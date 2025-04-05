@@ -26,7 +26,7 @@ namespace Zenoh
 
         // Creates a subscriber using the provided Session and KeyExpr.
         // Loans of objects are handled transparently.
-        public void CreateSubscriber(Session session, KeyExpr keyExpr, SampleReceivedCallback callback = null)
+        public ZResult CreateSubscriber(Session session, KeyExpr keyExpr, SampleReceivedCallback callback = null)
         {
             this.callback = callback;
             
@@ -36,8 +36,7 @@ namespace Zenoh
                 callbackHandle = GCHandle.Alloc(this);
             }
             
-            z_loaned_session_t* loanedSession = session.LoanSession();
-            z_loaned_keyexpr_t* loanedKeyExpr = keyExpr.Loan();
+            KeyExprRef loanedKeyExpr = keyExpr.Loan();
             
             // Create a closure with our static callback handler if a callback was provided
             this.closure = callback != null 
@@ -48,15 +47,12 @@ namespace Zenoh
             ZenohNative.z_subscriber_options_default(&options);
             
             z_result_t result = ZenohNative.z_declare_subscriber(
-                loanedSession,
+                session.Loan().NativePointer,
                 nativePtr,
-                loanedKeyExpr,
+                loanedKeyExpr.NativePointer,
                 (z_moved_closure_sample_t*)this.closure.NativePointer,
                 &options);
-            if(result != z_result_t.Z_OK)
-            {
-                throw new Exception("Failed to create subscriber");
-            }
+            return new ZResult(result);
         }
 
         // Static method to handle the native callback
