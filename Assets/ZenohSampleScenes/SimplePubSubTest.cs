@@ -3,7 +3,7 @@ using System.Collections;
 using UnityEngine;
 using Zenoh;
 
-public class ZenohSimplePubSubTest : MonoBehaviour
+public class SimplePubSubTest : MonoBehaviour
 {
     private Session session;
     private Subscriber subscriber;
@@ -125,8 +125,8 @@ public class ZenohSimplePubSubTest : MonoBehaviour
     // Callback for handling received samples
     private void HandleSample(SampleRef sample)
     {
-        string keyExpr = sample.GetKeyExpr();
-        byte[] payload = sample.GetPayload();
+        string keyExpr = sample.GetKeyExprRef().ToString();
+        byte[] payload = sample.GetPayload().ToByteArray();
         string payloadStr = System.Text.Encoding.UTF8.GetString(payload);
         
         Debug.Log($"Received: keyexpr: {keyExpr}");
