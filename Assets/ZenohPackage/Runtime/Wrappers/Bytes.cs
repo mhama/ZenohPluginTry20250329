@@ -100,7 +100,7 @@ namespace Zenoh
 
         internal z_loaned_bytes_t* NativePointer => nativePtr;
 
-        internal unsafe byte[] ToByteArray()
+        public unsafe byte[] ToByteArray()
         {
             // Convert bytes to slice
             z_owned_slice_t slice = new z_owned_slice_t();

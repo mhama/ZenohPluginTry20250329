@@ -1,0 +1,19 @@
+{
+    "name": "com.mhama.zenoh-plugin-unity",
+    "version": "0.1.0",
+    "displayName": "Zenoh Plugin for Unity",
+    "description": "",
+    "documentationUrl": "https://github.com/mhama/ZenohPluginTry20250329",
+    "changelogUrl": "https://github.com/mhama/ZenohPluginTry20250329",
+    "licensesUrl": "https://github.com/mhama/ZenohPluginTry20250329",
+    "dependencies": {
+    },
+    "keywords": [
+      "zenoh",
+      "network"
+    ],
+    "author": {
+      "name": "Makoto Hamanaka",
+      "email": "ham.lua@gmail.com"
+    }
+  }
