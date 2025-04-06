@@ -13,10 +13,13 @@ public class CameraReceiverTest : MonoBehaviour
     private KeyExpr keyExpr;
     private bool initialized = false;
     
-    private static byte[] managedBuffer;
-    private static object obj = new object();
-    private static Texture2D texture;
-    private static SynchronizationContext syncContext;
+    private byte[] managedBuffer;
+    private object obj = new object();
+    private Texture2D texture;
+    private SynchronizationContext syncContext;
+
+    [SerializeField]
+    private string keyExprStr = "rpi/camera/image_jpeg/left";
 
     [SerializeField]
     private TextAsset zenohConfigText;
@@ -26,7 +29,7 @@ public class CameraReceiverTest : MonoBehaviour
     private Renderer targetRenderer;
     
     // Flag indicating if the texture has been updated
-    private static bool textureUpdated = false;
+    private bool textureUpdated = false;
     
     void Start()
     {
@@ -162,7 +165,7 @@ public class CameraReceiverTest : MonoBehaviour
 
     private IEnumerator TestSubscriber()
     {
-        CreateSubscriber("rpi/camera/image_jpeg");
+        CreateSubscriber(keyExprStr);
         initialized = true;
         yield return new WaitForSeconds(5.0f);
     }
