@@ -8,7 +8,7 @@ using Unity.Collections;
 using UnityEngine;
 using Zenoh.Plugins;
 
-public unsafe class ZenohCameraReceiverTest : MonoBehaviour
+public unsafe class CameraReceiverTestRaw : MonoBehaviour
 {
     private z_owned_session_t* ownedSessionPtr;
     private z_owned_subscriber_t* ownedSubscriberPtr;
@@ -41,7 +41,7 @@ public unsafe class ZenohCameraReceiverTest : MonoBehaviour
         if (targetRenderer == null)
             targetRenderer = GetComponent<Renderer>();
             
-        ZenohUtils.OpenSession(ownedSessionPtr);
+        //ZenohUtils.OpenSession(ownedSessionPtr);
         StartCoroutine(TestSubscriber());
         texture = new Texture2D(1, 1);
     }
@@ -63,7 +63,7 @@ public unsafe class ZenohCameraReceiverTest : MonoBehaviour
         if (initialized)
         {
             // 初期化していないものを終了するとクラッシュするので注意
-            ZenohUtils.CloseSession(ownedSessionPtr);
+            //ZenohUtils.CloseSession(ownedSessionPtr);
             initialized = false;
         }
         

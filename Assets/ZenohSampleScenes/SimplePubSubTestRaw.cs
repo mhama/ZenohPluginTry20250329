@@ -6,7 +6,7 @@ using AOT;
 using UnityEngine;
 using Zenoh.Plugins;
 
-public unsafe class ZenohSimplePubSubTest : MonoBehaviour
+public unsafe class SimplePubSubTestRaw : MonoBehaviour
 {
     z_owned_session_t *ownedSessionPtr;
     z_owned_subscriber_t *ownedSubscriberPtr;
@@ -19,7 +19,7 @@ public unsafe class ZenohSimplePubSubTest : MonoBehaviour
         ownedSubscriberPtr = (z_owned_subscriber_t *)Marshal.AllocHGlobal(sizeof(z_owned_subscriber_t));
         ownedPublisherPtr = (z_owned_publisher_t *)Marshal.AllocHGlobal(sizeof(z_owned_publisher_t));
         TestString();
-        ZenohUtils.OpenSession(ownedSessionPtr);
+        //ZenohUtils.OpenSession(ownedSessionPtr);
         initialized = true;
         string keyExpr = "myhome/kitchen/temp";
         StartCoroutine(TestPublisher(keyExpr));
@@ -31,7 +31,7 @@ public unsafe class ZenohSimplePubSubTest : MonoBehaviour
         if (initialized)
         {
             // 初期化していないものを終了するとクラッシュするので注意
-            ZenohUtils.CloseSession(ownedSessionPtr);
+            //ZenohUtils.CloseSession(ownedSessionPtr);
         }
         
         if (ownedSessionPtr != null)
@@ -61,7 +61,7 @@ public unsafe class ZenohSimplePubSubTest : MonoBehaviour
             var loanedStringPtr = ZenohNative.z_string_loan(ownedStrPtr);
             var outStr = ZenohNative.z_string_data(loanedStringPtr);
             Debug.Log($"outStr: {Marshal.PtrToStringAnsi((IntPtr)outStr)}");
-            ZenohNative.z_string_drop(ZenohUtils.z_move(ownedStrPtr));
+            ZenohNative.z_string_drop((z_moved_string_t *)ownedStrPtr);
         }
     }
     
