@@ -9,6 +9,9 @@ Zenoh version: 1.3.0
 
 ## Platforms
 
+Confirmed on Unity 2022.3.x
+
+Build target platform:
 * windows x86-64
 * MacOS Apple Silicon
 * Android arm64
@@ -18,6 +21,14 @@ Zenoh version: 1.3.0
 * set Player Settings as follows.
   * enable `IL2CPP` scripting backend and select `arm64` architecture.
   * set internet access as `Required`
+
+## How to install this package
+
+Input this url to the Package Manager's 'Add package from Git URL...' menu.
+
+```
+https://github.com/mhama/ZenohPluginTry20250329.git?path=Assets/ZenohPackage
+```
 
 ## About samples
 
