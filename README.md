@@ -19,10 +19,6 @@ Zenoh version: 1.3.0
   * enable `IL2CPP` scripting backend and select `arm64` architecture.
   * set internet access as `Required`
 
-## Note on stability
-
-Because struct sizes can vary on platforms, ZenohNative.g.cs should be replaced for each selected platform.
-
 ## About samples
 
 ### ZenohSimplePubSubSample scene / ZenohSimplePubSubTest script
@@ -39,7 +35,7 @@ https://github.com/mhama/zenoh-rpi-camera-publisher-sample
 
 ## How to make DLL / ZenohNative.g.cs for each platforms
 
-binding code can be generated with zenoh-c-cs project. This project is a fork of zenoh-c with capability to output csharp binding code using csbindgen.
+binding code can be generated with [a branch of zenoh-c-cs](https://github.com/mhama/zenoh-c-cs/tree/20250325-csbindgen-1.3.0) project. This project is a fork of zenoh-c with capability to output csharp binding code using [a patched version](https://github.com/Cysharp/csbindgen/pull/106) of [csbindgen](https://github.com/Cysharp/csbindgen).
 
 ### clone repo
 
