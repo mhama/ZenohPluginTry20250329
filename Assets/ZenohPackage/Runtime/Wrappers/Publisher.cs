@@ -100,7 +100,7 @@ namespace Zenoh
         }
 
         // Declare a publisher
-        public void Declare(Session session, KeyExpr keyExpr, PublisherOptions options = null)
+        public ZResult Declare(Session session, KeyExpr keyExpr, PublisherOptions options = null)
         {
             if (session == null)
                 throw new ArgumentNullException(nameof(session));
@@ -122,11 +122,8 @@ namespace Zenoh
                 nativePtr,
                 keyExpr.Loan().NativePointer,
                 &pubOptions);
-                
-            if (result != z_result_t.Z_OK)
-            {
-                throw new Exception("Failed to declare publisher");
-            }
+
+            return new ZResult(result);
         }
 
         // Put string data
@@ -137,12 +134,12 @@ namespace Zenoh
 
             using (Bytes bytes = new Bytes(data))
             {
-                PutBytes(bytes, options);
+                Put(bytes, options);
             }
         }
 
         // Put ZenohBytes data
-        private void PutBytes(Bytes bytes, PublisherPutOptions options = null)
+        public void Put(Bytes bytes, PublisherPutOptions options = null)
         {
             if (bytes == null)
                 throw new ArgumentNullException(nameof(bytes));
@@ -163,7 +160,7 @@ namespace Zenoh
                 loanedPublisher, 
                 (z_moved_bytes_t*)bytes.NativePointer, 
                 &putOptions);
-                
+            
             if (result != z_result_t.Z_OK)
             {
                 throw new Exception("Failed to publish data");

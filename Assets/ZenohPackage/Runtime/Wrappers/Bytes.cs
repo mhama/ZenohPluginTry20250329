@@ -9,6 +9,9 @@ namespace Zenoh
     {
         private z_owned_bytes_t* nativePtr;
         private bool disposed = false;
+        
+        // Added field to keep the GCHandle for pinned byte array
+        private GCHandle? pinnedBuffer;
 
         public Bytes()
         {
@@ -27,6 +30,46 @@ namespace Zenoh
             {
                 Dispose();
                 throw new Exception("Failed to create bytes from string");
+            }
+        }
+
+        // Create from byte array
+        public Bytes(byte[] buffer) : this()
+        {
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer));
+
+            if (buffer.Length == 0)
+            {
+                // For empty arrays, just create an empty bytes object
+                ZenohNative.z_bytes_empty(nativePtr);
+                return;
+            }
+
+            // Pin the byte array so it won't be moved by GC
+            // The pin will be released when this instance is disposed
+            pinnedBuffer = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            IntPtr pinnedAddress = pinnedBuffer.Value.AddrOfPinnedObject();
+            
+            // バッファからBytesを作成
+            z_result_t result = ZenohNative.z_bytes_copy_from_buf(
+                nativePtr,
+                (byte*)pinnedAddress.ToPointer(),
+                (nuint)buffer.Length
+            );
+            
+            if (result != z_result_t.Z_OK)
+            {
+                // Clean up resources on error
+                Dispose();
+                throw new Exception("Failed to create bytes from buffer");
+            }
+            
+            // コピーが完了したのでpinnedBufferを解放
+            if (pinnedBuffer.HasValue && pinnedBuffer.Value.IsAllocated)
+            {
+                pinnedBuffer.Value.Free();
+                pinnedBuffer = null;
             }
         }
 
@@ -76,11 +119,22 @@ namespace Zenoh
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed && nativePtr != null)
+            if (!disposed)
             {
-                ZenohNative.z_bytes_drop((z_moved_bytes_t*)nativePtr);
-                Marshal.FreeHGlobal((IntPtr)nativePtr);
-                nativePtr = null;
+                if (nativePtr != null)
+                {
+                    ZenohNative.z_bytes_drop((z_moved_bytes_t*)nativePtr);
+                    Marshal.FreeHGlobal((IntPtr)nativePtr);
+                    nativePtr = null;
+                }
+                
+                // Unpin the buffer if it was pinned
+                if (pinnedBuffer.HasValue && pinnedBuffer.Value.IsAllocated)
+                {
+                    pinnedBuffer.Value.Free();
+                    pinnedBuffer = null;
+                }
+                
                 disposed = true;
             }
         }
@@ -126,5 +180,4 @@ namespace Zenoh
             return result;
         }
     }
-
 }
