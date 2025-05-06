@@ -9,9 +9,6 @@ namespace Zenoh
     {
         private z_owned_bytes_t* nativePtr;
         private bool disposed = false;
-        
-        // Added field to keep the GCHandle for pinned byte array
-        private GCHandle? pinnedBuffer;
 
         public Bytes()
         {
@@ -46,30 +43,20 @@ namespace Zenoh
                 return;
             }
 
-            // Pin the byte array so it won't be moved by GC
-            // The pin will be released when this instance is disposed
-            pinnedBuffer = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            IntPtr pinnedAddress = pinnedBuffer.Value.AddrOfPinnedObject();
-            
-            // バッファからBytesを作成
-            z_result_t result = ZenohNative.z_bytes_copy_from_buf(
-                nativePtr,
-                (byte*)pinnedAddress.ToPointer(),
-                (nuint)buffer.Length
-            );
-            
-            if (result != z_result_t.Z_OK)
+            fixed(byte* bufferPtr = &buffer[0])
             {
-                // Clean up resources on error
-                Dispose();
-                throw new Exception("Failed to create bytes from buffer");
-            }
-            
-            // コピーが完了したのでpinnedBufferを解放
-            if (pinnedBuffer.HasValue && pinnedBuffer.Value.IsAllocated)
-            {
-                pinnedBuffer.Value.Free();
-                pinnedBuffer = null;
+                // create from buffer
+                z_result_t result = ZenohNative.z_bytes_copy_from_buf(
+                    nativePtr,
+                    (byte*)bufferPtr,
+                    (nuint)buffer.Length
+                );
+                if (result != z_result_t.Z_OK)
+                {
+                    // Clean up resources on error
+                    Dispose();
+                    throw new Exception("Failed to create bytes from buffer");
+                }
             }
         }
 
@@ -127,14 +114,6 @@ namespace Zenoh
                     Marshal.FreeHGlobal((IntPtr)nativePtr);
                     nativePtr = null;
                 }
-                
-                // Unpin the buffer if it was pinned
-                if (pinnedBuffer.HasValue && pinnedBuffer.Value.IsAllocated)
-                {
-                    pinnedBuffer.Value.Free();
-                    pinnedBuffer = null;
-                }
-                
                 disposed = true;
             }
         }
