@@ -30,6 +30,36 @@ namespace Zenoh
             }
         }
 
+        // Create from byte array
+        public Bytes(byte[] buffer) : this()
+        {
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer));
+
+            if (buffer.Length == 0)
+            {
+                // For empty arrays, just create an empty bytes object
+                ZenohNative.z_bytes_empty(nativePtr);
+                return;
+            }
+
+            fixed(byte* bufferPtr = &buffer[0])
+            {
+                // create from buffer
+                z_result_t result = ZenohNative.z_bytes_copy_from_buf(
+                    nativePtr,
+                    (byte*)bufferPtr,
+                    (nuint)buffer.Length
+                );
+                if (result != z_result_t.Z_OK)
+                {
+                    // Clean up resources on error
+                    Dispose();
+                    throw new Exception("Failed to create bytes from buffer");
+                }
+            }
+        }
+
         public BytesRef Loan()
         {
             return new BytesRef(ZenohNative.z_bytes_loan(nativePtr));
@@ -76,11 +106,14 @@ namespace Zenoh
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed && nativePtr != null)
+            if (!disposed)
             {
-                ZenohNative.z_bytes_drop((z_moved_bytes_t*)nativePtr);
-                Marshal.FreeHGlobal((IntPtr)nativePtr);
-                nativePtr = null;
+                if (nativePtr != null)
+                {
+                    ZenohNative.z_bytes_drop((z_moved_bytes_t*)nativePtr);
+                    Marshal.FreeHGlobal((IntPtr)nativePtr);
+                    nativePtr = null;
+                }
                 disposed = true;
             }
         }
@@ -126,5 +159,4 @@ namespace Zenoh
             return result;
         }
     }
-
 }
