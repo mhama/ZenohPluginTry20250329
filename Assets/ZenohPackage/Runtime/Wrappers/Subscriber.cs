@@ -26,7 +26,7 @@ namespace Zenoh
 
         // Creates a subscriber using the provided Session and KeyExpr.
         // Loans of objects are handled transparently.
-        public ZResult CreateSubscriber(Session session, KeyExpr keyExpr, SampleReceivedCallback callback = null)
+        public ZResult CreateSubscriber(Session session, KeyExpr keyExpr, SampleReceivedCallback callback = null, SubscriberOptions options = null)
         {
             this.callback = callback;
             
@@ -43,15 +43,24 @@ namespace Zenoh
                 ? ClosureSample.Create(StaticCallbackHandler, null, GCHandle.ToIntPtr(callbackHandle).ToPointer())
                 : ClosureSample.CreateDefault();
             
-            z_subscriber_options_t options = new z_subscriber_options_t();
-            ZenohNative.z_subscriber_options_default(&options);
+            z_subscriber_options_t subOptions = new z_subscriber_options_t(); // Native options struct
+            // ZenohNative.z_subscriber_options_default(&subOptions); // Default is now called in ApplyTo
+
+            if (options != null)
+            {
+                options.ApplyTo(&subOptions); // Apply C# options if provided
+            }
+            else
+            {
+                ZenohNative.z_subscriber_options_default(&subOptions); // Apply default if no C# options
+            }
             
             z_result_t result = ZenohNative.z_declare_subscriber(
                 session.Loan().NativePointer,
                 nativePtr,
                 loanedKeyExpr.NativePointer,
                 (z_moved_closure_sample_t*)this.closure.NativePointer,
-                &options);
+                &subOptions); // Pass the configured options
             return new ZResult(result);
         }
 

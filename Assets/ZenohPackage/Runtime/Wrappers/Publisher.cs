@@ -4,6 +4,23 @@ using Zenoh.Plugins;
 
 namespace Zenoh
 {
+    public enum ZPriority
+    {
+        RealTime = 0, // Assuming Z_PRIORITY_REAL_TIME = 0
+        InteractiveHigh = 1, // Z_PRIORITY_INTERACTIVE_HIGH = 1
+        InteractiveLow = 2,  // Z_PRIORITY_INTERACTIVE_LOW = 2
+        DataHigh = 3,      // Z_PRIORITY_DATA_HIGH = 3
+        Data = 4,          // Z_PRIORITY_DATA = 4
+        DataLow = 5,       // Z_PRIORITY_DATA_LOW = 5
+        Background = 6     // Z_PRIORITY_BACKGROUND = 6
+    }
+
+    public enum ZCongestionControl
+    {
+        Drop = 0, // Assuming Z_CONGESTION_CONTROL_DROP = 0
+        Block = 1 // Assuming Z_CONGESTION_CONTROL_BLOCK = 1
+    }
+
     // Options class for publisher declaration
     public class PublisherOptions
     {
@@ -12,11 +29,22 @@ namespace Zenoh
             // Default constructor
         }
 
+        public ZPriority? Priority { get; set; } = null;
+        public ZCongestionControl? CongestionControl { get; set; } = null;
+
         // Apply options to native options structure
         internal unsafe void ApplyTo(z_publisher_options_t* options)
         {
             ZenohNative.z_publisher_options_default(options);
-            // Apply custom options here if needed
+            // Apply custom options here
+            if (Priority.HasValue)
+            {
+                options->priority = (z_priority_t)Priority.Value;
+            }
+            if (CongestionControl.HasValue)
+            {
+                options->congestion_control = (z_congestion_control_t)CongestionControl.Value;
+            }
         }
     }
 
